@@ -32,9 +32,19 @@ export interface BlogPost {
   id: string;
   title: string;
   excerpt: string;
-  date: string;
-  category: string;
-  author: string;
   imageUrl: string;
+  category: string;
+  date: string;
   readTime: string;
+  author: string;
+}
+
+export interface Inquiry {
+  id: string;
+  name: string;
+  email: string;
+  type: string;
+  message: string;
+  date: string;
+  status: 'new' | 'read' | 'replied';
 }

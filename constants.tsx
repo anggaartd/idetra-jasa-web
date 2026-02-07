@@ -1,5 +1,5 @@
 
-import { Project, PricingPlan, Testimonial, BlogPost } from './types';
+import { Project, PricingPlan, Testimonial, BlogPost, Inquiry } from './types';
 
 export const INITIAL_PROJECTS: Project[] = [
   {
@@ -9,7 +9,6 @@ export const INITIAL_PROJECTS: Project[] = [
     description: 'Sebuah landing page modern untuk kedai kopi lokal dengan fitur reservasi online.',
     techStack: ['React', 'Tailwind', 'Framer Motion'],
     imageUrl: 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?q=80&w=800&h=600&auto=format&fit=crop',
-    demoUrl: 'https://coffee-demo.idetra.id',
     status: 'published'
   },
   {
@@ -19,7 +18,6 @@ export const INITIAL_PROJECTS: Project[] = [
     description: 'Sistem manajemen nilai siswa digital yang terintegrasi dengan database sekolah untuk kemudahan pelaporan.',
     techStack: ['Next.js', 'PostgreSQL', 'Prisma'],
     imageUrl: 'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?q=80&w=800&h=600&auto=format&fit=crop',
-    demoUrl: 'https://eraport-demo.idetra.id',
     status: 'published'
   },
   {
@@ -29,7 +27,6 @@ export const INITIAL_PROJECTS: Project[] = [
     description: 'Kartu nama digital interaktif dengan QR code untuk networking profesional yang lebih efektif.',
     techStack: ['React', 'Firebase', 'Tailwind'],
     imageUrl: 'https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=800&h=600&auto=format&fit=crop',
-    demoUrl: 'https://idcard.idetra.id/u/john-doe',
     status: 'published'
   },
   {
@@ -39,7 +36,6 @@ export const INITIAL_PROJECTS: Project[] = [
     description: 'Website profil organisasi non-profit dengan fitur manajemen donasi dan laporan transparansi.',
     techStack: ['PHP', 'Laravel', 'MySQL'],
     imageUrl: 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=800&h=600&auto=format&fit=crop',
-    demoUrl: 'https://pedulikasih.org',
     status: 'published'
   }
 ];
@@ -92,32 +88,62 @@ export const TESTIMONIALS: Testimonial[] = [
 export const BLOG_POSTS: BlogPost[] = [
   {
     id: 'b1',
-    title: 'Pentingnya Website untuk UMKM di Tahun 2024',
-    excerpt: 'Mengapa bisnis kecil harus mulai beralih ke ranah digital untuk bertahan di kompetisi saat ini.',
-    date: '15 Mar 2024',
-    category: 'Bisnis',
-    author: 'Admin IDETRA',
-    imageUrl: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=800&h=400&auto=format&fit=crop',
-    readTime: '5 min'
+    title: '5 Alasan Mengapa Bisnis Anda Membutuhkan Website di Tahun 2024',
+    excerpt: 'Di era digital saat ini, website bukan lagi sebuah pilihan, melainkan keharusan bagi setiap unit bisnis yang ingin berkembang.',
+    imageUrl: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=800&h=600&auto=format&fit=crop',
+    category: 'Digital Strategy',
+    date: '10 Feb 2024',
+    readTime: '5 min read',
+    author: 'Admin IDETRA'
   },
   {
     id: 'b2',
-    title: 'Mengoptimalkan Kecepatan Loading Website',
-    excerpt: 'Tips dan trik teknis untuk membuat website Anda terbuka dalam sekejap mata.',
-    date: '10 Mar 2024',
-    category: 'Teknologi',
-    author: 'Tech Lead',
-    imageUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=800&h=400&auto=format&fit=crop',
-    readTime: '8 min'
+    title: 'Memahami SEO: Kunci Agar Website Anda Ditemukan Calon Pelanggan',
+    excerpt: 'Pelajari dasar-dasar Search Engine Optimization untuk meningkatkan peringkat website Anda di mesin pencari seperti Google.',
+    imageUrl: 'https://images.unsplash.com/photo-1571721795195-a2ca2d3370a9?q=80&w=800&h=600&auto=format&fit=crop',
+    category: 'SEO',
+    date: '15 Feb 2024',
+    readTime: '8 min read',
+    author: 'Admin IDETRA'
   },
   {
     id: 'b3',
-    title: 'Transformasi Digital Sekolah dengan E-Raport',
-    excerpt: 'Bagaimana sistem digitalisasi nilai mempermudah administrasi guru dan transparansi orang tua.',
-    date: '05 Mar 2024',
-    category: 'Edukasi',
-    author: 'Solution Architect',
-    imageUrl: 'https://images.unsplash.com/photo-1501504905252-473c47e087f8?q=80&w=800&h=400&auto=format&fit=crop',
-    readTime: '6 min'
+    title: 'Tren Desain Website Modern yang Wajib Anda Ketahui',
+    excerpt: 'Dari dark mode hingga micro-interactions, temukan tren desain terbaru yang akan membuat website Anda tampil lebih memukau.',
+    imageUrl: 'https://images.unsplash.com/photo-1581291518633-83b4ebd1d83e?q=80&w=800&h=600&auto=format&fit=crop',
+    category: 'Web Design',
+    date: '20 Feb 2024',
+    readTime: '6 min read',
+    author: 'Admin IDETRA'
+  }
+];
+
+export const INITIAL_INQUIRIES: Inquiry[] = [
+  {
+    id: 'i1',
+    name: 'Rahmat Hidayat',
+    email: 'rahmat@tokokita.id',
+    type: 'Landing Page',
+    message: 'Halo, saya ingin bertanya mengenai pembuatan landing page untuk produk fashion UMKM saya. Apakah bisa selesai dalam 3 hari?',
+    date: '2024-03-20',
+    status: 'new'
+  },
+  {
+    id: 'i2',
+    name: 'Jessica Putri',
+    email: 'jessica@creative.com',
+    type: 'Company Profile',
+    message: 'Saya butuh website company profile untuk agency baru saya. Desainnya ingin yang minimalist dan clean.',
+    date: '2024-03-19',
+    status: 'read'
+  },
+  {
+    id: 'i3',
+    name: 'Agus Santoso',
+    email: 'agus@sekolahmaju.edu',
+    type: 'E-Raport',
+    message: 'Tertarik dengan sistem E-Raport untuk sekolah kami. Apakah ada demo yang bisa kami coba?',
+    date: '2024-03-18',
+    status: 'replied'
   }
 ];

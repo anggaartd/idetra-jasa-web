@@ -66,8 +66,8 @@ const Portfolio: React.FC = () => {
 
       {/* Detail Modal */}
       {selectedProject && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="bg-white w-full max-w-4xl rounded-[2rem] overflow-hidden relative max-h-[90vh] overflow-y-auto shadow-2xl">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white w-full max-w-4xl rounded-[2rem] overflow-hidden relative max-h-[90vh] overflow-y-auto">
             <button 
               onClick={() => setSelectedProject(null)}
               className="absolute top-6 right-6 z-10 p-2 bg-slate-100 rounded-full hover:bg-slate-200 transition-colors text-slate-600"
@@ -89,23 +89,16 @@ const Portfolio: React.FC = () => {
                   <div>
                     <h4 className="text-sm font-bold text-slate-900 mb-2">Tech Stack</h4>
                     <div className="flex flex-wrap gap-2">
-                      {selectedProject.techStack.map((tech: string) => (
+                      {selectedProject.techStack.map(tech => (
                         <span key={tech} className="bg-blue-50 text-blue-600 text-[10px] px-3 py-1.5 rounded-lg font-bold">{tech}</span>
                       ))}
                     </div>
                   </div>
-                  {selectedProject.demoUrl && (
-                    <div className="pt-6">
-                      <a 
-                        href={selectedProject.demoUrl} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 bg-blue-600 text-white px-8 py-3 rounded-full font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-100"
-                      >
-                        Lihat Live Demo <ExternalLink size={16} />
-                      </a>
-                    </div>
-                  )}
+                  <div className="pt-6">
+                    <a href="#" className="inline-flex items-center gap-2 bg-blue-600 text-white px-8 py-3 rounded-full font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-100">
+                      Lihat Live Demo <ExternalLink size={16} />
+                    </a>
+                  </div>
                 </div>
               </div>
             </div>

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Layout, Palette, Code, Globe, MessageSquare, Zap, CreditCard, GraduationCap, Users } from 'lucide-react';
+import { Layout, Palette, Code, Globe, MessageSquare, Zap, CreditCard, GraduationCap, Users, Monitor, ShieldCheck, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Services: React.FC = () => {
@@ -36,10 +36,10 @@ const Services: React.FC = () => {
       features: ['High Conversion Design', 'Fast Loading', 'Analytics Integration']
     },
     {
-      icon: <MessageSquare size={32} />,
-      title: 'Blog & Content System',
-      desc: 'Kami membangun platform CMS untuk publikasi artikel, berita, dan manajemen konten blog.',
-      features: ['Easy to Use CMS', 'SEO Integration', 'Newsletter Support']
+      icon: <Monitor size={32} />,
+      title: 'Custom Web Application',
+      desc: 'Solusi perangkat lunak berbasis web kustom untuk kebutuhan bisnis spesifik Anda.',
+      features: ['Scalable Architecture', 'Custom Backend', 'Cloud Integration']
     }
   ];
 

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
   LayoutGrid, 
   Settings, 
@@ -10,181 +10,163 @@ import {
   CheckCircle,
   Briefcase,
   Tag,
-  BookOpen,
   MessageSquare,
   Search,
   ChevronRight,
   ExternalLink,
   X,
-  Star,
-  ArrowRight,
-  CheckCircle2,
+  Upload,
   Image as ImageIcon,
-  Globe
+  Check,
+  Star,
+  Mail,
+  Eye,
+  Clock
 } from 'lucide-react';
-import { INITIAL_PROJECTS, BLOG_POSTS, INITIAL_PRICING } from '../constants';
-import { PricingPlan, Project } from '../types';
+import { INITIAL_PROJECTS, INITIAL_PRICING, INITIAL_INQUIRIES } from '../constants';
+import { Project, PricingPlan, Inquiry } from '../types';
 import { Link, useNavigate } from 'react-router-dom';
 
 const AdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [projects, setProjects] = useState<Project[]>(INITIAL_PROJECTS);
   const [pricingPlans, setPricingPlans] = useState<PricingPlan[]>(INITIAL_PRICING);
+  const [inquiries, setInquiries] = useState<Inquiry[]>(INITIAL_INQUIRIES);
   
-  // Modals state
-  const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
-  const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
-  
-  // Edit states
-  const [editingPlan, setEditingPlan] = useState<PricingPlan | null>(null);
+  // Modal States
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
-  
-  // Form States
-  const [pricingForm, setPricingForm] = useState({
+  const [projectFormData, setProjectFormData] = useState<Partial<Project>>({
+    name: '',
+    category: 'Landing Page',
+    description: '',
+    techStack: [],
+    imageUrl: '',
+    status: 'published'
+  });
+
+  const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
+  const [editingPlan, setEditingPlan] = useState<PricingPlan | null>(null);
+  const [pricingFormData, setPricingFormData] = useState<Partial<PricingPlan>>({
     name: '',
     price: '',
     duration: '',
-    features: '',
-    recommended: false
+    features: [],
+    recommended: false,
+    active: true
   });
+  const [featureInput, setFeatureInput] = useState('');
 
-  const [projectForm, setProjectForm] = useState({
-    name: '',
-    category: 'Landing Page' as Project['category'],
-    description: '',
-    techStack: '',
-    imageUrl: '',
-    demoUrl: '',
-    status: 'published' as Project['status']
-  });
+  const [selectedInquiry, setSelectedInquiry] = useState<Inquiry | null>(null);
 
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const tabs = [
     { id: 'overview', name: 'Ringkasan', icon: <LayoutGrid size={20} /> },
     { id: 'projects', name: 'Portofolio', icon: <Briefcase size={20} /> },
-    { id: 'blog', name: 'Manajemen Blog', icon: <BookOpen size={20} /> },
+    { id: 'pricing', name: 'Daftar Paket', icon: <Tag size={20} /> },
     { id: 'inquiries', name: 'Pesan Masuk', icon: <MessageSquare size={20} /> },
-    { id: 'pricing', name: 'Manajemen Paket', icon: <Tag size={20} /> }
   ];
 
-  const handleLogout = () => {
-    navigate('/login');
+  const handleLogout = () => navigate('/login');
+
+  // Handlers for Projects
+  const openProjectModal = (project?: Project) => {
+    if (project) {
+      setEditingProject(project);
+      setProjectFormData(project);
+    } else {
+      setEditingProject(null);
+      setProjectFormData({ name: '', category: 'Landing Page', description: '', techStack: [], imageUrl: '', status: 'published' });
+    }
+    setIsModalOpen(true);
   };
 
-  // --- PRICING CRUD ---
+  const handleSaveProject = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editingProject) {
+      setProjects(projects.map(p => p.id === editingProject.id ? { ...p, ...projectFormData } as Project : p));
+    } else {
+      const newProject: Project = { ...projectFormData, id: Math.random().toString(36).substr(2, 9) } as Project;
+      setProjects([newProject, ...projects]);
+    }
+    setIsModalOpen(false);
+  };
+
+  const handleDeleteProject = (id: string) => {
+    if (window.confirm('Hapus proyek ini?')) setProjects(projects.filter(p => p.id !== id));
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => setProjectFormData({ ...projectFormData, imageUrl: reader.result as string });
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Handlers for Pricing
   const openPricingModal = (plan?: PricingPlan) => {
     if (plan) {
       setEditingPlan(plan);
-      setPricingForm({
-        name: plan.name,
-        price: plan.price,
-        duration: plan.duration,
-        features: plan.features.join('\n'),
-        recommended: plan.recommended || false
-      });
+      setPricingFormData(plan);
     } else {
       setEditingPlan(null);
-      setPricingForm({
-        name: '',
-        price: '',
-        duration: '',
-        features: '',
-        recommended: false
-      });
+      setPricingFormData({ name: '', price: '', duration: '', features: [], recommended: false, active: true });
     }
     setIsPricingModalOpen(true);
   };
 
   const handleSavePricing = (e: React.FormEvent) => {
     e.preventDefault();
-    const newPlan: PricingPlan = {
-      id: editingPlan ? editingPlan.id : `p${Date.now()}`,
-      name: pricingForm.name,
-      price: pricingForm.price,
-      duration: pricingForm.duration,
-      features: pricingForm.features.split('\n').filter(f => f.trim() !== ''),
-      recommended: pricingForm.recommended,
-      active: true
-    };
-
     if (editingPlan) {
-      setPricingPlans(prev => prev.map(p => p.id === editingPlan.id ? newPlan : p));
+      setPricingPlans(pricingPlans.map(p => p.id === editingPlan.id ? { ...p, ...pricingFormData } as PricingPlan : p));
     } else {
-      setPricingPlans(prev => [...prev, newPlan]);
+      const newPlan: PricingPlan = { ...pricingFormData, id: Math.random().toString(36).substr(2, 9) } as PricingPlan;
+      setPricingPlans([...pricingPlans, newPlan]);
     }
     setIsPricingModalOpen(false);
   };
 
+  const handleAddFeature = () => {
+    if (featureInput.trim()) {
+      setPricingFormData({ ...pricingFormData, features: [...(pricingFormData.features || []), featureInput.trim()] });
+      setFeatureInput('');
+    }
+  };
+
+  const handleRemoveFeature = (index: number) => {
+    setPricingFormData({ ...pricingFormData, features: (pricingFormData.features || []).filter((_, i) => i !== index) });
+  };
+
   const handleDeletePricing = (id: string) => {
-    if (window.confirm('Hapus paket ini?')) {
-      setPricingPlans(prev => prev.filter(p => p.id !== id));
+    if (window.confirm('Hapus paket ini?')) setPricingPlans(pricingPlans.filter(p => p.id !== id));
+  };
+
+  // Handlers for Inquiries
+  const handleOpenInquiry = (inquiry: Inquiry) => {
+    setSelectedInquiry(inquiry);
+    if (inquiry.status === 'new') {
+      setInquiries(inquiries.map(i => i.id === inquiry.id ? { ...i, status: 'read' as const } : i));
     }
   };
 
-  // --- PROJECT CRUD ---
-  const openProjectModal = (project?: Project) => {
-    if (project) {
-      setEditingProject(project);
-      setProjectForm({
-        name: project.name,
-        category: project.category,
-        description: project.description,
-        techStack: project.techStack.join(', '),
-        imageUrl: project.imageUrl,
-        demoUrl: project.demoUrl || '',
-        status: project.status
-      });
-    } else {
-      setEditingProject(null);
-      setProjectForm({
-        name: '',
-        category: 'Landing Page',
-        description: '',
-        techStack: '',
-        imageUrl: '',
-        demoUrl: '',
-        status: 'published'
-      });
-    }
-    setIsProjectModalOpen(true);
-  };
-
-  const handleSaveProject = (e: React.FormEvent) => {
-    e.preventDefault();
-    const newProject: Project = {
-      id: editingProject ? editingProject.id : `${Date.now()}`,
-      name: projectForm.name,
-      category: projectForm.category,
-      description: projectForm.description,
-      techStack: projectForm.techStack.split(',').map(s => s.trim()).filter(s => s !== ''),
-      imageUrl: projectForm.imageUrl || 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=800&h=600&auto=format&fit=crop',
-      demoUrl: projectForm.demoUrl,
-      status: projectForm.status
-    };
-
-    if (editingProject) {
-      setProjects(prev => prev.map(p => p.id === editingProject.id ? newProject : p));
-    } else {
-      setProjects(prev => [...prev, newProject]);
-    }
-    setIsProjectModalOpen(false);
-  };
-
-  const handleDeleteProject = (id: string) => {
-    if (window.confirm('Hapus project ini dari portofolio?')) {
-      setProjects(prev => prev.filter(p => p.id !== id));
+  const handleDeleteInquiry = (id: string) => {
+    if (window.confirm('Hapus pesan ini?')) {
+      setInquiries(inquiries.filter(i => i.id !== id));
+      if (selectedInquiry?.id === id) setSelectedInquiry(null);
     }
   };
 
   const renderOverview = () => (
     <div className="space-y-10 animate-in fade-in duration-500">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {[
-          { label: 'Total Proyek', value: projects.length.toString(), icon: <Briefcase className="text-blue-600" />, trend: 'Aktif' },
-          { label: 'Artikel Blog', value: BLOG_POSTS.length.toString(), icon: <BookOpen className="text-purple-600" />, trend: 'Update' },
-          { label: 'Pesan Baru', value: '7', icon: <MessageSquare className="text-orange-600" />, trend: 'Priority' },
-          { label: 'Paket Harga', value: pricingPlans.length.toString(), icon: <Tag className="text-green-600" />, trend: 'Live' }
+          { label: 'Total Proyek', value: projects.length.toString(), icon: <Briefcase className="text-blue-600" />, trend: '+4 bulan ini' },
+          { label: 'Pesan Baru', value: inquiries.filter(i => i.status === 'new').length.toString(), icon: <MessageSquare className="text-orange-600" />, trend: 'Perlu respon' },
+          { label: 'Paket Aktif', value: pricingPlans.filter(p => p.active).length.toString(), icon: <Tag className="text-green-600" />, trend: 'Online' }
         ].map((stat, i) => (
           <div key={i} className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 flex flex-col justify-between">
             <div className="flex justify-between items-start mb-4">
@@ -203,463 +185,349 @@ const AdminDashboard: React.FC = () => {
         <div className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm">
           <div className="flex justify-between items-center mb-8">
             <h5 className="text-lg font-bold flex items-center">
-              <CheckCircle className="text-green-500 mr-2" size={20} /> Log Perubahan
+              <CheckCircle className="text-green-500 mr-2" size={20} /> Aktivitas Terakhir
             </h5>
+            <button className="text-xs font-bold text-blue-600 hover:underline">Lihat Semua</button>
           </div>
           <div className="space-y-6">
-            <div className="flex items-center justify-between pb-6 border-b border-slate-50">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-[10px] font-black text-blue-600">PK</div>
-                <div>
-                  <p className="text-sm font-bold text-slate-900">Perubahan harga Paket Basic</p>
-                  <p className="text-[10px] text-slate-400 font-medium uppercase">Baru saja • Oleh Admin</p>
+            {[
+              { text: 'Daftar portofolio diperbarui', time: 'Baru saja', user: 'Admin' },
+              { text: 'Pesan baru dari ' + (inquiries[0]?.name || 'Client'), time: '2 jam yang lalu', user: 'System' },
+              { text: 'Pembaruan keamanan sistem', time: '5 jam yang lalu', user: 'System' },
+            ].map((activity, i) => (
+              <div key={i} className="flex items-center justify-between pb-6 border-b border-slate-50 last:border-0 last:pb-0">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-[10px] font-black text-blue-600">ID</div>
+                  <div>
+                    <p className="text-sm font-bold text-slate-900">{activity.text}</p>
+                    <p className="text-[10px] text-slate-400 font-medium uppercase">{activity.time} • Oleh {activity.user}</p>
+                  </div>
                 </div>
+                <ChevronRight size={14} className="text-slate-300" />
               </div>
-              <ChevronRight size={14} className="text-slate-300" />
-            </div>
+            ))}
           </div>
         </div>
 
         <div className="bg-slate-900 rounded-[2.5rem] p-8 text-white">
           <div className="flex justify-between items-center mb-8">
-            <h5 className="text-lg font-bold text-blue-400">Pusat Bantuan</h5>
+            <h5 className="text-lg font-bold">Quick Tasks</h5>
+            <Settings size={20} className="text-slate-500" />
           </div>
-          <div className="bg-slate-800/50 p-6 rounded-3xl border border-slate-700/50">
-             <p className="text-sm text-slate-300 leading-relaxed mb-6">Butuh bantuan teknis atau ingin menambahkan fitur kustom ke dashboard Anda?</p>
-             <button className="flex items-center gap-2 text-xs font-bold text-blue-400 hover:text-blue-300 transition-colors">
-               Hubungi Support Team <ArrowRight size={14} />
+          <div className="grid grid-cols-2 gap-4">
+             <button onClick={() => {setActiveTab('projects'); openProjectModal();}} className="bg-slate-800 hover:bg-slate-700 p-6 rounded-3xl text-left transition-all group">
+                <Plus size={24} className="text-blue-400 mb-4 group-hover:scale-110 transition-transform" />
+                <p className="font-bold text-sm">Upload Project</p>
              </button>
+             <button onClick={() => {setActiveTab('pricing'); openPricingModal();}} className="bg-slate-800 hover:bg-slate-700 p-6 rounded-3xl text-left transition-all group">
+                <Tag size={24} className="text-green-400 mb-4 group-hover:scale-110 transition-transform" />
+                <p className="font-bold text-sm">Update Paket</p>
+             </button>
+             <div className="col-span-2 bg-blue-600/10 border border-blue-600/30 p-6 rounded-3xl">
+                <p className="text-xs font-bold text-blue-400 uppercase tracking-widest mb-2">Pesan Belum Dibaca</p>
+                <p className="text-sm">Ada {inquiries.filter(i => i.status === 'new').length} pesan baru yang menunggu respon Anda.</p>
+             </div>
           </div>
         </div>
-      </div>
-    </div>
-  );
-
-  const renderProjectManager = () => (
-    <div className="animate-in slide-in-from-bottom-4 duration-500">
-      <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-        <h4 className="text-2xl font-black text-slate-900">Kelola Portofolio</h4>
-        <button 
-          onClick={() => openProjectModal()}
-          className="bg-blue-600 text-white px-6 py-3 rounded-xl text-sm font-bold flex items-center whitespace-nowrap shadow-lg shadow-blue-100"
-        >
-          <Plus size={18} className="mr-2" /> Tambah Project
-        </button>
-      </div>
-
-      <div className="bg-white rounded-[2rem] overflow-hidden border border-slate-100 shadow-sm">
-        <table className="w-full text-left">
-          <thead className="bg-slate-50 text-slate-500 text-[10px] uppercase tracking-widest font-black">
-            <tr>
-              <th className="px-8 py-6">Project</th>
-              <th className="px-8 py-6">Kategori</th>
-              <th className="px-8 py-6">Demo Link</th>
-              <th className="px-8 py-6 text-right">Aksi</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-50">
-            {projects.map((item) => (
-              <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
-                <td className="px-8 py-6">
-                  <div className="flex items-center gap-4">
-                    <img src={item.imageUrl} className="w-12 h-12 rounded-xl object-cover shadow-sm" alt={item.name} />
-                    <div>
-                       <span className="text-sm font-bold text-slate-900 block">{item.name}</span>
-                       <span className={`text-[10px] uppercase font-black px-2 py-0.5 rounded ${item.status === 'published' ? 'text-green-500 bg-green-50' : 'text-slate-400 bg-slate-100'}`}>
-                         {item.status}
-                       </span>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-8 py-6">
-                  <span className="text-xs font-bold text-slate-600 bg-slate-100 px-3 py-1 rounded-full">{item.category}</span>
-                </td>
-                <td className="px-8 py-6">
-                   {item.demoUrl ? (
-                     <a href={item.demoUrl} target="_blank" className="text-blue-600 hover:underline flex items-center text-xs gap-1 font-bold">
-                       Link Aktif <ExternalLink size={12} />
-                     </a>
-                   ) : (
-                     <span className="text-slate-300 text-xs italic">Tidak ada</span>
-                   )}
-                </td>
-                <td className="px-8 py-6 text-right">
-                  <div className="flex justify-end gap-3">
-                    <button onClick={() => openProjectModal(item)} className="p-2.5 bg-slate-50 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"><Edit3 size={16} /></button>
-                    <button onClick={() => handleDeleteProject(item.id)} className="p-2.5 bg-slate-50 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"><Trash2 size={16} /></button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-
-  const renderPricingManager = () => (
-    <div className="animate-in slide-in-from-bottom-4 duration-500">
-      <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
-        <div className="max-w-xl">
-          <h4 className="text-2xl font-black text-slate-900 mb-2">Editor Paket Layanan</h4>
-          <p className="text-slate-500 text-sm">Kelola paket investasi yang tampil di halaman depan. Anda bisa mengubah harga, fitur, dan highlight paket rekomendasi.</p>
-        </div>
-        <button 
-          onClick={() => openPricingModal()}
-          className="bg-blue-600 text-white px-8 py-4 rounded-2xl text-sm font-black flex items-center whitespace-nowrap shadow-xl shadow-blue-200 hover:bg-blue-700 transition-all hover:-translate-y-1"
-        >
-          <Plus size={20} className="mr-2" /> Buat Paket Baru
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {pricingPlans.map((plan) => (
-          <div 
-            key={plan.id} 
-            className={`relative p-8 rounded-[2.5rem] border bg-white flex flex-col group transition-all ${
-              plan.recommended ? 'border-blue-500 shadow-xl' : 'border-slate-100 shadow-sm'
-            }`}
-          >
-            {plan.recommended && (
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest">
-                Recommended
-              </div>
-            )}
-            
-            <div className="mb-6 flex justify-between items-start">
-               <div>
-                  <h5 className="text-lg font-bold text-slate-900 mb-1">{plan.name}</h5>
-                  <p className="text-2xl font-black text-slate-900">{plan.price}</p>
-                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1 italic">{plan.duration}</p>
-               </div>
-               <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button onClick={() => openPricingModal(plan)} className="p-2 bg-slate-50 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all">
-                    <Edit3 size={16} />
-                  </button>
-                  <button onClick={() => handleDeletePricing(plan.id)} className="p-2 bg-slate-50 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all">
-                    <Trash2 size={16} />
-                  </button>
-               </div>
-            </div>
-
-            <ul className="space-y-3 mb-10 flex-grow">
-              {plan.features.map((f, i) => (
-                <li key={i} className="flex items-center text-xs text-slate-500">
-                  <CheckCircle2 className="text-blue-600 mr-3 shrink-0" size={16} />
-                  <span className="truncate">{f}</span>
-                </li>
-              ))}
-            </ul>
-
-            <div className="pt-6 border-t border-slate-50">
-               <div className="flex items-center justify-between text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                  <span>Status:</span>
-                  <span className="text-green-600 bg-green-50 px-2 py-1 rounded">Live On Web</span>
-               </div>
-            </div>
-          </div>
-        ))}
       </div>
     </div>
   );
 
   return (
     <div className="min-h-screen bg-slate-50 flex">
-      {/* Sidebar */}
       <aside className="w-72 bg-white border-r border-slate-200 hidden md:flex flex-col fixed inset-y-0 z-50">
         <div className="p-10 border-b border-slate-100">
-          <Link to="/" className="text-2xl font-black text-slate-900 tracking-tighter">
-            <span className="text-blue-600">IDE</span>TRA
-          </Link>
-          <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest mt-1">Console v2.0</p>
+          <Link to="/" className="text-2xl font-black text-slate-900 tracking-tighter"><span className="text-blue-600">IDE</span>TRA</Link>
+          <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest mt-1">Management Console</p>
         </div>
-
         <nav className="flex-grow p-6 space-y-2 mt-4">
           {tabs.map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`w-full flex items-center px-6 py-4 rounded-2xl text-sm font-bold transition-all ${
-                activeTab === tab.id 
-                  ? 'bg-blue-600 text-white shadow-2xl shadow-blue-500/20 translate-x-1' 
-                  : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                activeTab === tab.id ? 'bg-blue-600 text-white shadow-2xl shadow-blue-500/20 translate-x-1' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
               }`}
             >
-              <span className="mr-4">{tab.icon}</span>
-              {tab.name}
+              <span className="mr-4">{tab.icon}</span>{tab.name}
             </button>
           ))}
         </nav>
-
         <div className="p-8 border-t border-slate-100">
-          <button 
-            onClick={handleLogout}
-            className="w-full flex items-center px-6 py-4 rounded-2xl text-sm font-bold text-red-500 hover:bg-red-50 transition-all"
-          >
+          <button onClick={handleLogout} className="w-full flex items-center px-6 py-4 rounded-2xl text-sm font-bold text-red-500 hover:bg-red-50 transition-all">
             <LogOut size={20} className="mr-4" /> Logout
           </button>
         </div>
       </aside>
 
-      {/* Main Content */}
       <main className="flex-grow md:ml-72 p-6 md:p-12">
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-16 gap-6">
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-6">
           <div>
-            <h2 className="text-4xl font-black text-slate-900 tracking-tight">Dashboard</h2>
-            <p className="text-sm text-slate-500 mt-1">Kelola seluruh konten website IDETRA di sini.</p>
+            <h2 className="text-3xl font-black text-slate-900">
+              {activeTab === 'overview' && 'Ringkasan Dashboard'}
+              {activeTab === 'projects' && 'Manajemen Portofolio'}
+              {activeTab === 'pricing' && 'Manajemen Paket Harga'}
+              {activeTab === 'inquiries' && 'Pesan Konsultasi'}
+            </h2>
+            <p className="text-sm text-slate-500 mt-1">Kelola data IDETRA dengan mudah.</p>
           </div>
-          <div className="flex items-center gap-4">
-             <Link to="/" target="_blank" className="bg-white border border-slate-200 text-slate-600 px-6 py-3 rounded-xl text-xs font-bold flex items-center shadow-sm hover:bg-slate-50 transition-colors">
-               Live Preview <ExternalLink size={14} className="ml-2" />
-             </Link>
-            <button className="p-3 bg-white border border-slate-200 rounded-xl text-slate-400 hover:text-blue-600 shadow-sm transition-all">
-              <Settings size={20} />
-            </button>
-          </div>
+          <a href="/" target="_blank" className="bg-white border border-slate-200 text-slate-600 px-5 py-3 rounded-xl text-xs font-bold flex items-center shadow-sm hover:bg-slate-50">
+            Visit Site <ExternalLink size={14} className="ml-2" />
+          </a>
         </header>
 
         {activeTab === 'overview' && renderOverview()}
-        {activeTab === 'projects' && renderProjectManager()}
-        {activeTab === 'blog' && (
-           <div className="py-20 text-center bg-white rounded-[3rem] border border-slate-100">
-             <BookOpen size={48} className="mx-auto text-slate-200 mb-6" />
-             <h4 className="text-xl font-bold text-slate-900">Manajemen Blog</h4>
-             <p className="text-slate-400 text-sm mt-2 max-w-xs mx-auto">Publikasikan wawasan terbaru Anda untuk meningkatkan SEO website.</p>
-           </div>
+
+        {activeTab === 'projects' && (
+          <div className="animate-in slide-in-from-bottom-4 duration-500">
+            <div className="flex justify-between items-center mb-8">
+              <h4 className="text-2xl font-black text-slate-900">Portofolio</h4>
+              <button onClick={() => openProjectModal()} className="bg-blue-600 text-white px-8 py-4 rounded-2xl text-sm font-bold flex items-center shadow-xl shadow-blue-100 hover:bg-blue-700 transition-all">
+                <Plus size={20} className="mr-2" /> Tambah Project
+              </button>
+            </div>
+            <div className="bg-white rounded-[2rem] overflow-hidden border border-slate-100 shadow-sm">
+              <table className="w-full text-left">
+                <thead className="bg-slate-50 text-slate-500 text-[10px] uppercase tracking-widest font-black">
+                  <tr><th className="px-8 py-6">Project Details</th><th className="px-8 py-6">Kategori</th><th className="px-8 py-6">Status</th><th className="px-8 py-6 text-right">Actions</th></tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  {projects.map(item => (
+                    <tr key={item.id} className="hover:bg-slate-50/50 transition-colors group">
+                      <td className="px-8 py-6">
+                        <div className="flex items-center gap-4">
+                          <img src={item.imageUrl} className="w-14 h-14 rounded-2xl object-cover shadow-sm border border-slate-100" alt="" />
+                          <div><span className="text-sm font-bold text-slate-900 block">{item.name}</span><span className="text-[10px] text-slate-400 font-medium line-clamp-1 max-w-[200px]">{item.description}</span></div>
+                        </div>
+                      </td>
+                      <td className="px-8 py-6"><span className="text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg">{item.category}</span></td>
+                      <td className="px-8 py-6"><span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase ${item.status === 'published' ? 'bg-green-50 text-green-600' : 'bg-slate-100 text-slate-400'}`}>{item.status}</span></td>
+                      <td className="px-8 py-6 text-right">
+                        <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button onClick={() => openProjectModal(item)} className="p-3 bg-slate-50 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"><Edit3 size={16} /></button>
+                          <button onClick={() => handleDeleteProject(item.id)} className="p-3 bg-slate-50 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"><Trash2 size={16} /></button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
         )}
-        {activeTab === 'pricing' && renderPricingManager()}
-        
+
+        {activeTab === 'pricing' && (
+          <div className="animate-in slide-in-from-bottom-4 duration-500">
+            <div className="flex justify-between items-center mb-8">
+              <h4 className="text-2xl font-black text-slate-900">Paket Harga</h4>
+              <button onClick={() => openPricingModal()} className="bg-blue-600 text-white px-8 py-4 rounded-2xl text-sm font-bold flex items-center shadow-xl shadow-blue-100 hover:bg-blue-700 transition-all">
+                <Plus size={20} className="mr-2" /> Tambah Paket
+              </button>
+            </div>
+            <div className="bg-white rounded-[2rem] overflow-hidden border border-slate-100 shadow-sm">
+              <table className="w-full text-left">
+                <thead className="bg-slate-50 text-slate-500 text-[10px] uppercase tracking-widest font-black">
+                  <tr><th className="px-8 py-6">Nama Paket</th><th className="px-8 py-6">Harga</th><th className="px-8 py-6">Durasi</th><th className="px-8 py-6">Status</th><th className="px-8 py-6 text-right">Aksi</th></tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  {pricingPlans.map(plan => (
+                    <tr key={plan.id} className="hover:bg-slate-50/50 transition-colors group">
+                      <td className="px-8 py-6"><div className="flex items-center gap-2"><span className="text-sm font-bold text-slate-900">{plan.name}</span>{plan.recommended && <Star size={14} className="text-yellow-500 fill-yellow-500" />}</div></td>
+                      <td className="px-8 py-6"><span className="text-sm font-black text-slate-900">{plan.price}</span></td>
+                      <td className="px-8 py-6"><span className="text-xs text-slate-500">{plan.duration}</span></td>
+                      <td className="px-8 py-6"><span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase ${plan.active ? 'bg-green-50 text-green-600' : 'bg-slate-100 text-slate-400'}`}>{plan.active ? 'Aktif' : 'Nonaktif'}</span></td>
+                      <td className="px-8 py-6 text-right">
+                        <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button onClick={() => openPricingModal(plan)} className="p-3 bg-slate-50 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"><Edit3 size={16} /></button>
+                          <button onClick={() => handleDeletePricing(plan.id)} className="p-3 bg-slate-50 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"><Trash2 size={16} /></button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
         {activeTab === 'inquiries' && (
-          <div className="animate-in fade-in duration-500">
-             <h4 className="text-2xl font-black text-slate-900 mb-8">Pesan Masuk (Leads)</h4>
-             <div className="space-y-4">
-               {[1, 2, 3].map(i => (
-                 <div key={i} className="bg-white p-8 rounded-[2.5rem] border border-slate-100 flex flex-col md:flex-row justify-between items-center gap-6">
-                    <div className="flex items-center gap-6 w-full md:w-auto">
-                       <div className="w-14 h-14 bg-orange-50 text-orange-600 rounded-2xl flex items-center justify-center font-black">LEAD</div>
-                       <div>
-                          <p className="font-bold text-slate-900 text-lg">Bpk. Ahmad Sujarwo</p>
-                          <p className="text-sm text-slate-500 mt-1">"Ingin tanya estimasi paket Custom E-Raport untuk Sekolah..."</p>
-                          <div className="flex items-center gap-4 mt-3">
-                             <span className="text-[10px] font-black bg-blue-50 text-blue-600 px-2 py-1 rounded">E-Raport</span>
-                             <span className="text-[10px] font-medium text-slate-400">2 jam yang lalu</span>
-                          </div>
-                       </div>
+          <div className="animate-in slide-in-from-bottom-4 duration-500">
+             <div className="flex justify-between items-center mb-8">
+              <h4 className="text-2xl font-black text-slate-900">Pesan Masuk</h4>
+              <div className="flex gap-2">
+                <span className="bg-orange-50 text-orange-600 text-[10px] font-black uppercase px-3 py-1 rounded-full flex items-center">{inquiries.filter(i => i.status === 'new').length} Pesan Baru</span>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-[2rem] overflow-hidden border border-slate-100 shadow-sm">
+              <table className="w-full text-left">
+                <thead className="bg-slate-50 text-slate-500 text-[10px] uppercase tracking-widest font-black">
+                  <tr><th className="px-8 py-6">Pengirim</th><th className="px-8 py-6">Kebutuhan</th><th className="px-8 py-6">Tanggal</th><th className="px-8 py-6">Status</th><th className="px-8 py-6 text-right">Aksi</th></tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  {inquiries.map(inquiry => (
+                    <tr key={inquiry.id} className={`hover:bg-slate-50/50 transition-colors group ${inquiry.status === 'new' ? 'bg-blue-50/20' : ''}`}>
+                      <td className="px-8 py-6">
+                        <div>
+                          <span className={`text-sm font-bold block ${inquiry.status === 'new' ? 'text-blue-600' : 'text-slate-900'}`}>{inquiry.name}</span>
+                          <span className="text-[10px] text-slate-400 font-medium">{inquiry.email}</span>
+                        </div>
+                      </td>
+                      <td className="px-8 py-6"><span className="text-xs font-bold text-slate-700">{inquiry.type}</span></td>
+                      <td className="px-8 py-6"><span className="text-xs text-slate-500">{inquiry.date}</span></td>
+                      <td className="px-8 py-6">
+                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase ${
+                          inquiry.status === 'new' ? 'bg-orange-50 text-orange-600' : inquiry.status === 'replied' ? 'bg-green-50 text-green-600' : 'bg-slate-100 text-slate-400'
+                        }`}>{inquiry.status}</span>
+                      </td>
+                      <td className="px-8 py-6 text-right">
+                        <div className="flex justify-end gap-2">
+                          <button onClick={() => handleOpenInquiry(inquiry)} className="p-3 bg-slate-50 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"><Eye size={16} /></button>
+                          <button onClick={() => handleDeleteInquiry(inquiry.id)} className="p-3 bg-slate-50 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"><Trash2 size={16} /></button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {inquiries.length === 0 && <div className="p-20 text-center"><MessageSquare size={48} className="mx-auto text-slate-200 mb-4"/><p className="text-slate-400 font-bold">Belum ada pesan masuk.</p></div>}
+            </div>
+          </div>
+        )}
+
+        {/* Inquiry Detail Modal */}
+        {selectedInquiry && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
+            <div className="bg-white w-full max-w-xl rounded-[2.5rem] shadow-2xl overflow-hidden relative">
+              <header className="px-10 py-8 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
+                <div>
+                  <h3 className="text-xl font-black text-slate-900">Detail Pesan Konsultasi</h3>
+                  <p className="text-xs text-slate-500 font-medium">Informasi pengirim dan isi pesan.</p>
+                </div>
+                <button onClick={() => setSelectedInquiry(null)} className="p-2 hover:bg-white rounded-full transition-colors text-slate-400"><X size={24} /></button>
+              </header>
+              <div className="p-10 space-y-8">
+                <div className="grid grid-cols-2 gap-8">
+                   <div><p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Pengirim</p><p className="text-sm font-bold text-slate-900">{selectedInquiry.name}</p></div>
+                   <div><p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Email</p><p className="text-sm font-bold text-blue-600 underline">{selectedInquiry.email}</p></div>
+                   <div><p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Tipe Proyek</p><p className="text-sm font-bold text-slate-700">{selectedInquiry.type}</p></div>
+                   <div><p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Tanggal Masuk</p><p className="text-sm font-bold text-slate-700">{selectedInquiry.date}</p></div>
+                </div>
+                <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
+                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-3">Isi Pesan</p>
+                  <p className="text-sm text-slate-600 leading-relaxed italic">"{selectedInquiry.message}"</p>
+                </div>
+                <div className="flex gap-4">
+                  <a href={`mailto:${selectedInquiry.email}`} className="flex-grow bg-blue-600 text-white py-4 rounded-2xl font-bold text-center shadow-xl shadow-blue-100 hover:bg-blue-700 transition-all flex items-center justify-center gap-2">
+                    <Mail size={18} /> Balas via Email
+                  </a>
+                  <button onClick={() => {
+                    setInquiries(inquiries.map(i => i.id === selectedInquiry.id ? { ...i, status: 'replied' as const } : i));
+                    setSelectedInquiry({...selectedInquiry, status: 'replied'});
+                  }} className="px-6 py-4 rounded-2xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 transition-all">Tandai Terbalas</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Project Modal */}
+        {isModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
+            <div className="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden relative">
+              <header className="px-10 py-8 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
+                <div>
+                  <h3 className="text-xl font-black text-slate-900">{editingProject ? 'Edit Portofolio' : 'Tambah Portofolio'}</h3>
+                  <p className="text-xs text-slate-500 font-medium">Lengkapi detail proyek Anda.</p>
+                </div>
+                <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-white rounded-full transition-colors text-slate-400"><X size={24} /></button>
+              </header>
+              <form onSubmit={handleSaveProject} className="p-10 space-y-6 max-h-[70vh] overflow-y-auto">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Nama Proyek</label>
+                    <input type="text" required value={projectFormData.name} onChange={e => setProjectFormData({...projectFormData, name: e.target.value})} className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-4 px-6 text-sm" placeholder="Contoh: Coffee Shop Landing" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Kategori</label>
+                    <select value={projectFormData.category} onChange={e => setProjectFormData({...projectFormData, category: e.target.value as any})} className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-4 px-6 text-sm">
+                      <option>Company Profile</option><option>Landing Page</option><option>E-Commerce</option><option>Digital ID Card</option><option>E-Raport</option><option>Organisasi Profile</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Deskripsi</label>
+                  <textarea rows={3} required value={projectFormData.description} onChange={e => setProjectFormData({...projectFormData, description: e.target.value})} className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-4 px-6 text-sm" placeholder="Jelaskan proyek ini..." />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Gambar</label>
+                  <div className="flex gap-6 items-start">
+                    <div onClick={() => fileInputRef.current?.click()} className="w-32 h-32 bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl overflow-hidden flex items-center justify-center cursor-pointer relative group">
+                      {projectFormData.imageUrl ? <img src={projectFormData.imageUrl} className="w-full h-full object-cover" alt="" /> : <ImageIcon size={32} className="text-slate-300" />}
+                      <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white"><Upload size={20} /></div>
                     </div>
-                    <div className="flex gap-3 w-full md:w-auto">
-                       <button className="flex-grow md:flex-none px-8 py-4 bg-green-600 text-white rounded-2xl text-xs font-black shadow-lg shadow-green-100">Hubungi WA</button>
-                       <button className="px-4 py-4 bg-slate-50 text-slate-400 rounded-2xl hover:text-red-500 transition-all"><Trash2 size={20} /></button>
-                    </div>
-                 </div>
-               ))}
-             </div>
+                    <input type="file" hidden ref={fileInputRef} accept="image/*" onChange={handleImageUpload} />
+                  </div>
+                </div>
+                <footer className="pt-6 border-t border-slate-50 flex justify-end gap-4">
+                  <button type="button" onClick={() => setIsModalOpen(false)} className="px-8 py-4 rounded-2xl text-sm font-bold text-slate-500">Batal</button>
+                  <button type="submit" className="bg-blue-600 text-white px-10 py-4 rounded-2xl text-sm font-bold shadow-xl">Simpan</button>
+                </footer>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Pricing Modal */}
+        {isPricingModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
+            <div className="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden relative">
+              <header className="px-10 py-8 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
+                <div><h3 className="text-xl font-black text-slate-900">{editingPlan ? 'Edit Paket' : 'Tambah Paket Baru'}</h3><p className="text-xs text-slate-500 font-medium">Atur paket harga layanan Anda.</p></div>
+                <button onClick={() => setIsPricingModalOpen(false)} className="p-2 hover:bg-white rounded-full transition-colors text-slate-400"><X size={24} /></button>
+              </header>
+              <form onSubmit={handleSavePricing} className="p-10 space-y-6 max-h-[70vh] overflow-y-auto">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Nama Paket</label>
+                    <input type="text" required value={pricingFormData.name} onChange={e => setPricingFormData({...pricingFormData, name: e.target.value})} className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-4 px-6 text-sm" placeholder="Contoh: Paket UMKM" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Harga</label>
+                    <input type="text" required value={pricingFormData.price} onChange={e => setPricingFormData({...pricingFormData, price: e.target.value})} className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-4 px-6 text-sm" placeholder="Contoh: Rp 1.500.000" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Durasi</label>
+                    <input type="text" required value={pricingFormData.duration} onChange={e => setPricingFormData({...pricingFormData, duration: e.target.value})} className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-4 px-6 text-sm" placeholder="Contoh: 3-5 Hari" />
+                  </div>
+                  <div className="flex items-center gap-8 pt-6">
+                    <label className="flex items-center gap-3 cursor-pointer"><input type="checkbox" checked={pricingFormData.recommended} onChange={e => setPricingFormData({...pricingFormData, recommended: e.target.checked})} className="w-5 h-5 rounded border-slate-300 text-blue-600" /><span className="text-xs font-bold text-slate-700">Recommended</span></label>
+                    <label className="flex items-center gap-3 cursor-pointer"><input type="checkbox" checked={pricingFormData.active} onChange={e => setPricingFormData({...pricingFormData, active: e.target.checked})} className="w-5 h-5 rounded border-slate-300 text-blue-600" /><span className="text-xs font-bold text-slate-700">Aktif</span></label>
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Daftar Fitur</label>
+                  <div className="flex gap-2">
+                    <input type="text" value={featureInput} onChange={e => setFeatureInput(e.target.value)} onKeyPress={e => e.key === 'Enter' && (e.preventDefault(), handleAddFeature())} className="flex-grow bg-slate-50 border border-slate-100 rounded-2xl py-4 px-6 text-sm" placeholder="Ketik fitur lalu Enter" />
+                    <button type="button" onClick={handleAddFeature} className="bg-slate-900 text-white p-4 rounded-2xl"><Plus size={20} /></button>
+                  </div>
+                  <div className="flex flex-wrap gap-2 pt-2">
+                    {pricingFormData.features?.map((f, i) => (
+                      <span key={i} className="bg-slate-100 text-slate-700 text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-2">{f}<button type="button" onClick={() => handleRemoveFeature(i)} className="hover:text-red-500"><X size={14} /></button></span>
+                    ))}
+                  </div>
+                </div>
+                <footer className="pt-6 border-t border-slate-50 flex justify-end gap-4">
+                  <button type="button" onClick={() => setIsPricingModalOpen(false)} className="px-8 py-4 rounded-2xl text-sm font-bold text-slate-500">Batal</button>
+                  <button type="submit" className="bg-blue-600 text-white px-10 py-4 rounded-2xl text-sm font-bold shadow-xl">Simpan</button>
+                </footer>
+              </form>
+            </div>
           </div>
         )}
       </main>
-
-      {/* Project CRUD Modal */}
-      {isProjectModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="bg-white w-full max-w-2xl rounded-[3rem] overflow-hidden relative shadow-2xl">
-            <div className="p-10 border-b border-slate-50 flex justify-between items-center">
-              <div>
-                <h3 className="text-2xl font-black text-slate-900">{editingProject ? 'Edit Portofolio' : 'Tambah Project Baru'}</h3>
-                <p className="text-sm text-slate-400 mt-1">Isi detail karya terbaik Anda.</p>
-              </div>
-              <button onClick={() => setIsProjectModalOpen(false)} className="p-3 bg-slate-100 rounded-full hover:bg-slate-200 transition-colors">
-                <X size={20} />
-              </button>
-            </div>
-            
-            <form onSubmit={handleSaveProject} className="p-10 space-y-6 max-h-[70vh] overflow-y-auto">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Nama Project</label>
-                  <input 
-                    type="text" 
-                    required 
-                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-sm font-bold focus:ring-2 focus:ring-blue-600/10 focus:outline-none" 
-                    value={projectForm.name}
-                    onChange={e => setProjectForm({...projectForm, name: e.target.value})}
-                    placeholder="Contoh: Coffee Shop Landing"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Kategori</label>
-                  <select 
-                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-sm font-bold focus:ring-2 focus:ring-blue-600/10 focus:outline-none"
-                    value={projectForm.category}
-                    onChange={e => setProjectForm({...projectForm, category: e.target.value as any})}
-                  >
-                    <option>Company Profile</option>
-                    <option>Landing Page</option>
-                    <option>E-Raport</option>
-                    <option>Digital ID Card</option>
-                    <option>Organisasi Profile</option>
-                    <option>Custom Web App</option>
-                    <option>E-Commerce</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Deskripsi Singkat</label>
-                <textarea 
-                  required 
-                  rows={3} 
-                  className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-sm font-medium focus:ring-2 focus:ring-blue-600/10 focus:outline-none resize-none" 
-                  value={projectForm.description}
-                  onChange={e => setProjectForm({...projectForm, description: e.target.value})}
-                  placeholder="Ceritakan tentang project ini..."
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Tech Stack (Pisahkan dengan koma)</label>
-                <input 
-                  type="text" 
-                  required 
-                  className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-sm font-bold focus:ring-2 focus:ring-blue-600/10 focus:outline-none" 
-                  value={projectForm.techStack}
-                  onChange={e => setProjectForm({...projectForm, techStack: e.target.value})}
-                  placeholder="React, Tailwind, Firebase..."
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1"><ImageIcon size={10} /> Image URL</label>
-                  <input 
-                    type="text" 
-                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-sm font-bold focus:ring-2 focus:ring-blue-600/10 focus:outline-none" 
-                    value={projectForm.imageUrl}
-                    onChange={e => setProjectForm({...projectForm, imageUrl: e.target.value})}
-                    placeholder="https://images.unsplash.com/..."
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1"><Globe size={10} /> Live Demo URL</label>
-                  <input 
-                    type="text" 
-                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-sm font-bold focus:ring-2 focus:ring-blue-600/10 focus:outline-none" 
-                    value={projectForm.demoUrl}
-                    onChange={e => setProjectForm({...projectForm, demoUrl: e.target.value})}
-                    placeholder="https://myproject.com"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3">
-                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Status:</label>
-                 <div className="flex gap-4">
-                    <label className="flex items-center gap-2 text-sm font-bold cursor-pointer">
-                       <input type="radio" name="status" checked={projectForm.status === 'published'} onChange={() => setProjectForm({...projectForm, status: 'published'})} />
-                       Published
-                    </label>
-                    <label className="flex items-center gap-2 text-sm font-bold cursor-pointer">
-                       <input type="radio" name="status" checked={projectForm.status === 'draft'} onChange={() => setProjectForm({...projectForm, status: 'draft'})} />
-                       Draft
-                    </label>
-                 </div>
-              </div>
-
-              <div className="pt-4">
-                <button type="submit" className="w-full bg-blue-600 text-white py-5 rounded-3xl text-sm font-black shadow-2xl shadow-blue-200 hover:bg-blue-700 transition-all hover:-translate-y-1">
-                  Simpan Project
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Pricing CRUD Modal (Already existed, kept for completeness) */}
-      {isPricingModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="bg-white w-full max-w-xl rounded-[3rem] overflow-hidden relative shadow-2xl">
-            <div className="p-10 border-b border-slate-50 flex justify-between items-center">
-              <div>
-                <h3 className="text-2xl font-black text-slate-900">{editingPlan ? 'Ubah Paket' : 'Tambah Paket Layanan'}</h3>
-                <p className="text-sm text-slate-400 mt-1">Detail paket akan langsung terupdate di halaman depan.</p>
-              </div>
-              <button onClick={() => setIsPricingModalOpen(false)} className="p-3 bg-slate-100 rounded-full hover:bg-slate-200 transition-colors">
-                <X size={20} />
-              </button>
-            </div>
-            
-            <form onSubmit={handleSavePricing} className="p-10 space-y-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="space-y-3">
-                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Nama Paket</label>
-                  <input 
-                    type="text" 
-                    required 
-                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-sm font-bold focus:ring-2 focus:ring-blue-600/10 focus:outline-none" 
-                    value={pricingForm.name}
-                    onChange={e => setPricingForm({...pricingForm, name: e.target.value})}
-                    placeholder="Contoh: Paket Basic"
-                  />
-                </div>
-                <div className="space-y-3">
-                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Harga / Custom</label>
-                  <input 
-                    type="text" 
-                    required 
-                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-sm font-bold focus:ring-2 focus:ring-blue-600/10 focus:outline-none" 
-                    value={pricingForm.price}
-                    onChange={e => setPricingForm({...pricingForm, price: e.target.value})}
-                    placeholder="Contoh: Rp 1.500.000"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Estimasi Pengerjaan</label>
-                <input 
-                  type="text" 
-                  required 
-                  className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-sm font-bold focus:ring-2 focus:ring-blue-600/10 focus:outline-none" 
-                  value={pricingForm.duration}
-                  onChange={e => setPricingForm({...pricingForm, duration: e.target.value})}
-                  placeholder="Contoh: 3-5 Hari Kerja"
-                />
-              </div>
-
-              <div className="space-y-3">
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Fitur Unggulan (Enter untuk baris baru)</label>
-                <textarea 
-                  required 
-                  rows={5} 
-                  className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-sm font-medium focus:ring-2 focus:ring-blue-600/10 focus:outline-none resize-none leading-relaxed" 
-                  value={pricingForm.features}
-                  onChange={e => setPricingForm({...pricingForm, features: e.target.value})}
-                  placeholder="Single Landing Page&#10;Mobile Responsive&#10;Gratis Hosting..."
-                />
-              </div>
-
-              <div className="flex items-center gap-4 p-6 bg-blue-50/50 rounded-3xl border border-blue-100">
-                <input 
-                  type="checkbox" 
-                  id="recommended-check" 
-                  className="w-6 h-6 rounded-lg border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                  checked={pricingForm.recommended}
-                  onChange={e => setPricingForm({...pricingForm, recommended: e.target.checked})}
-                />
-                <div>
-                   <label htmlFor="recommended-check" className="text-sm font-black text-slate-900 cursor-pointer">Setel Sebagai Paket Unggulan</label>
-                   <p className="text-[10px] text-blue-600 font-bold uppercase tracking-widest mt-0.5">Diberikan label "Recommended" & Highlight Biru</p>
-                </div>
-              </div>
-
-              <div className="pt-4">
-                <button type="submit" className="w-full bg-blue-600 text-white py-5 rounded-3xl text-sm font-black shadow-2xl shadow-blue-200 hover:bg-blue-700 transition-all hover:-translate-y-1">
-                  Simpan Paket Layanan
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
