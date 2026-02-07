@@ -1,0 +1,8 @@
+{
+  "name": "IDETRA - Jasa Pembuatan Website Profesional",
+  "description": "Website profil untuk IDETRA, sebuah agency pembuatan website modern yang fokus pada UMKM, Startup, dan Personal Branding.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
