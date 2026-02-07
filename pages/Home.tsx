@@ -144,10 +144,10 @@ const Home: React.FC = () => {
       {/* Process Section - Horizontal Slide on Mobile */}
       <section className="py-24 bg-white relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16 md:mb-24">
+          <div className="text-center mb-16 md:mb-24 px-4">
             <h2 className="text-blue-600 font-bold uppercase text-xs tracking-[0.2em] mb-4">Langkah Kerja</h2>
-            <h3 className="text-4xl md:text-5xl font-black text-slate-900">Alur Kerja <span className="text-blue-600">Terstruktur</span></h3>
-            <p className="text-slate-500 mt-4 max-w-xl mx-auto">Proses pengerjaan transparan yang mengutamakan kualitas dan kecepatan.</p>
+            <h3 className="text-3xl md:text-5xl font-black text-slate-900">Alur Kerja <span className="text-blue-600">Terstruktur</span></h3>
+            <p className="text-slate-500 mt-4 max-w-xl mx-auto text-sm md:text-base">Proses pengerjaan transparan yang mengutamakan kualitas dan kecepatan.</p>
           </div>
 
           <div className="relative">
@@ -155,18 +155,18 @@ const Home: React.FC = () => {
             <div className="absolute top-[4.5rem] left-[15%] right-[15%] h-[2px] bg-slate-100 hidden lg:block" />
             
             {/* Mobile Scroll Hint */}
-            <div className="lg:hidden flex justify-center items-center gap-2 mb-6 text-slate-400">
+            <div className="lg:hidden flex justify-center items-center gap-2 mb-8 text-slate-400">
                <span className="text-[10px] font-bold uppercase tracking-widest animate-pulse">Geser untuk melihat proses</span>
-               <ChevronRight size={14} className="text-blue-500" />
+               <ChevronRight size={14} className="text-blue-500 animate-bounce-x" />
             </div>
 
             {/* Steps Container with Snap Scroll for Mobile */}
             <div className="flex lg:grid lg:grid-cols-4 gap-6 md:gap-8 overflow-x-auto lg:overflow-visible pb-12 lg:pb-0 snap-x snap-mandatory hide-scrollbar -mx-4 px-4 md:mx-0 md:px-0">
               {steps.map((item, idx) => (
-                <div key={idx} className="min-w-[85%] sm:min-w-[320px] lg:min-w-0 snap-center group">
-                  <div className="relative flex flex-col items-center lg:items-center">
+                <div key={idx} className="min-w-[85vw] sm:min-w-[320px] lg:min-w-0 snap-center group">
+                  <div className="relative flex flex-col items-center lg:items-center h-full">
                     {/* Icon Container */}
-                    <div className="w-20 h-20 md:w-24 md:h-24 bg-white border-4 border-slate-50 rounded-[2.5rem] flex items-center justify-center shadow-xl group-hover:border-blue-100 group-hover:shadow-blue-200/40 transition-all duration-500 relative z-20 mb-8">
+                    <div className="w-20 h-20 md:w-24 md:h-24 bg-white border-4 border-slate-50 rounded-[2.5rem] flex items-center justify-center shadow-xl group-hover:border-blue-100 group-hover:shadow-blue-200/40 transition-all duration-500 relative z-20 mb-8 shrink-0">
                       {item.icon}
                       <span className="absolute -top-2 -right-2 w-10 h-10 bg-slate-900 text-white rounded-2xl flex items-center justify-center text-xs font-black shadow-lg">
                         {item.step}
@@ -174,7 +174,7 @@ const Home: React.FC = () => {
                     </div>
 
                     {/* Content Card */}
-                    <div className="bg-slate-50/50 p-8 rounded-[3rem] border border-slate-100 hover:bg-white hover:shadow-2xl hover:shadow-slate-200/50 transition-all duration-500 text-center h-full relative overflow-hidden">
+                    <div className="bg-slate-50/50 p-8 rounded-[3rem] border border-slate-100 hover:bg-white hover:shadow-2xl hover:shadow-slate-200/50 transition-all duration-500 text-center h-full relative overflow-hidden flex flex-col justify-center min-h-[220px]">
                        {/* Artist Step Number Background */}
                        <span className="absolute -right-8 -top-12 text-[10rem] font-black text-slate-200/10 select-none group-hover:text-blue-100/20 transition-colors duration-500">
                         {item.step}
@@ -196,12 +196,12 @@ const Home: React.FC = () => {
       {/* Portfolio Section - Fixed Alignment for Mobile */}
       <section className="py-24 bg-white border-t border-slate-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row justify-between items-center md:items-end mb-16 gap-8 text-center md:text-left">
-            <div className="max-w-xl">
+          <div className="flex flex-col md:flex-row justify-between items-center md:items-end mb-16 gap-10 text-center md:text-left">
+            <div className="max-w-xl mx-auto md:mx-0">
               <h2 className="text-blue-600 font-bold uppercase text-sm tracking-widest mb-4">Karya Kami</h2>
               <h3 className="text-3xl md:text-5xl font-black text-slate-900">Portofolio Pilihan</h3>
             </div>
-            <Link to="/portfolio" className="bg-slate-50 hover:bg-blue-50 text-blue-600 px-8 py-4 rounded-full font-bold text-sm flex items-center transition-all border border-slate-100 hover:border-blue-100 group">
+            <Link to="/portfolio" className="bg-slate-50 hover:bg-blue-50 text-blue-600 px-10 py-4 rounded-full font-bold text-sm flex items-center transition-all border border-slate-100 hover:border-blue-100 group mx-auto md:mx-0">
               Lihat Semua Project <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" size={18} />
             </Link>
           </div>
@@ -215,7 +215,7 @@ const Home: React.FC = () => {
                     <button className="bg-white text-blue-600 px-6 py-3 rounded-2xl font-bold shadow-xl text-sm transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">Lihat Project</button>
                   </div>
                 </div>
-                <div className="px-2">
+                <div className="px-2 text-center md:text-left">
                   <p className="text-blue-600 text-xs font-bold mb-2 uppercase tracking-[0.15em]">{project.category}</p>
                   <h4 className="text-xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors">{project.name}</h4>
                 </div>

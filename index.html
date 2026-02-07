@@ -22,6 +22,13 @@
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
+        @keyframes bounce-x {
+          0%, 100% { transform: translateX(0); }
+          50% { transform: translateX(5px); }
+        }
+        .animate-bounce-x {
+          animation: bounce-x 1s infinite;
+        }
     </style>
     <script type="importmap">
     {
@@ -39,5 +46,7 @@
 </head>
 <body class="bg-slate-50 text-slate-900">
     <div id="root"></div>
+    <!-- Script di bawah ini sangat penting untuk memuat aplikasi React Anda -->
+    <script type="module" src="index.tsx"></script>
 </body>
 </html>
