@@ -9,6 +9,7 @@ export const INITIAL_PROJECTS: Project[] = [
     description: 'Sebuah landing page modern untuk kedai kopi lokal dengan fitur reservasi online.',
     techStack: ['React', 'Tailwind', 'Framer Motion'],
     imageUrl: 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?q=80&w=800&h=600&auto=format&fit=crop',
+    projectUrl: 'https://demo-coffee.idetra.id',
     status: 'published'
   },
   {
@@ -18,6 +19,7 @@ export const INITIAL_PROJECTS: Project[] = [
     description: 'Sistem manajemen nilai siswa digital yang terintegrasi dengan database sekolah untuk kemudahan pelaporan.',
     techStack: ['Next.js', 'PostgreSQL', 'Prisma'],
     imageUrl: 'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?q=80&w=800&h=600&auto=format&fit=crop',
+    projectUrl: 'https://eraport-v2.idetra.id',
     status: 'published'
   },
   {
@@ -27,15 +29,7 @@ export const INITIAL_PROJECTS: Project[] = [
     description: 'Kartu nama digital interaktif dengan QR code untuk networking profesional yang lebih efektif.',
     techStack: ['React', 'Firebase', 'Tailwind'],
     imageUrl: 'https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=800&h=600&auto=format&fit=crop',
-    status: 'published'
-  },
-  {
-    id: '4',
-    name: 'Yayasan Peduli Kasih',
-    category: 'Organisasi Profile',
-    description: 'Website profil organisasi non-profit dengan fitur manajemen donasi dan laporan transparansi.',
-    techStack: ['PHP', 'Laravel', 'MySQL'],
-    imageUrl: 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=800&h=600&auto=format&fit=crop',
+    projectUrl: 'https://id.idetra.id/john-doe',
     status: 'published'
   }
 ];
@@ -75,13 +69,6 @@ export const TESTIMONIALS: Testimonial[] = [
     role: 'CEO Startup Nusantara',
     avatar: 'https://picsum.photos/seed/budi/100/100',
     content: 'IDETRA sangat membantu bisnis kami tampil lebih profesional di mata investor. Hasil kerjanya cepat dan rapi.'
-  },
-  {
-    id: 't2',
-    name: 'Sari Wijaya',
-    role: 'Owner Wijaya Florist',
-    avatar: 'https://picsum.photos/seed/sari/100/100',
-    content: 'Website landing page buatan IDETRA meningkatkan konversi penjualan kami hingga 40%. Sangat recommended!'
   }
 ];
 
@@ -95,26 +82,6 @@ export const BLOG_POSTS: BlogPost[] = [
     date: '10 Feb 2024',
     readTime: '5 min read',
     author: 'Admin IDETRA'
-  },
-  {
-    id: 'b2',
-    title: 'Memahami SEO: Kunci Agar Website Anda Ditemukan Calon Pelanggan',
-    excerpt: 'Pelajari dasar-dasar Search Engine Optimization untuk meningkatkan peringkat website Anda di mesin pencari seperti Google.',
-    imageUrl: 'https://images.unsplash.com/photo-1571721795195-a2ca2d3370a9?q=80&w=800&h=600&auto=format&fit=crop',
-    category: 'SEO',
-    date: '15 Feb 2024',
-    readTime: '8 min read',
-    author: 'Admin IDETRA'
-  },
-  {
-    id: 'b3',
-    title: 'Tren Desain Website Modern yang Wajib Anda Ketahui',
-    excerpt: 'Dari dark mode hingga micro-interactions, temukan tren desain terbaru yang akan membuat website Anda tampil lebih memukau.',
-    imageUrl: 'https://images.unsplash.com/photo-1581291518633-83b4ebd1d83e?q=80&w=800&h=600&auto=format&fit=crop',
-    category: 'Web Design',
-    date: '20 Feb 2024',
-    readTime: '6 min read',
-    author: 'Admin IDETRA'
   }
 ];
 
@@ -124,26 +91,8 @@ export const INITIAL_INQUIRIES: Inquiry[] = [
     name: 'Rahmat Hidayat',
     email: 'rahmat@tokokita.id',
     type: 'Landing Page',
-    message: 'Halo, saya ingin bertanya mengenai pembuatan landing page untuk produk fashion UMKM saya. Apakah bisa selesai dalam 3 hari?',
+    message: 'Halo, saya ingin bertanya mengenai pembuatan landing page untuk produk fashion UMKM saya.',
     date: '2024-03-20',
     status: 'new'
-  },
-  {
-    id: 'i2',
-    name: 'Jessica Putri',
-    email: 'jessica@creative.com',
-    type: 'Company Profile',
-    message: 'Saya butuh website company profile untuk agency baru saya. Desainnya ingin yang minimalist dan clean.',
-    date: '2024-03-19',
-    status: 'read'
-  },
-  {
-    id: 'i3',
-    name: 'Agus Santoso',
-    email: 'agus@sekolahmaju.edu',
-    type: 'E-Raport',
-    message: 'Tertarik dengan sistem E-Raport untuk sekolah kami. Apakah ada demo yang bisa kami coba?',
-    date: '2024-03-18',
-    status: 'replied'
   }
 ];

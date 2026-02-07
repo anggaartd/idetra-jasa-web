@@ -6,7 +6,7 @@ export interface Project {
   description: string;
   techStack: string[];
   imageUrl: string;
-  demoUrl?: string;
+  projectUrl?: string; // Tautan ke website yang sudah live
   status: 'published' | 'draft';
 }
 
